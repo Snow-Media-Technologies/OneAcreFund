@@ -4,7 +4,7 @@
 </div>
 
 <div class="table-responsive">
-    <div id="genres"></div>
+    <div id="genres" class="ml-3 mb-3"></div>
     <table class="table table-striped table-sm" id="movie-table">
         <thead>
             <tr>
@@ -25,12 +25,25 @@
 <script>
     //get genre from the server-side render
     let selectedGenre = '{{selectedGenre}}';
-    let url = '/rest/movies/' + (selectedGenre ? `byGenre/${selectedGenre}` : 'all');
+    let movieUniqueId = '{{movieId}}';
+    let url = selectedGenre ? `/rest/movies/byGenre/${selectedGenre}` : (movieUniqueId.length >0) ? `/rest/movie/${movieUniqueId}`: "/rest/movies/all";
+    const path = window.location.pathname;
+    const splitPath = path.split('/').splice(1, 2);
+    if (splitPath[0] === 'movie') {
+        $("#specific-movie").css({ display: 'block' });
+        $("#movie-table").css({display: 'none'});
+        $(window).on('load', findSpecicMovie(splitPath[1]));
+    }
+    else{
+      $(window).on('load',()=>{
+       $("#movie-table").css({display: 'block'});
+      });
+      
+    }
 
     //call REST service and render table
     $(document).ready(function () {
         $('#spinner').removeClass('hidden');
-        $("#specific-movie").css({ display: 'none' });
         $.ajax(
             url,
             {
@@ -42,12 +55,12 @@
                         movies.forEach(movie => {
                             tbody.append(`<tr>
                                 <td data-attr=${movie.movieId}>
-                                    <a href="javascript:void(0)">
+                                    <a href="/movie/${movie.movieId}">
                                         ${movie.title}
                                     </a>
                                     </td>
                                 <td>
-                                ${movie.genres.join(0).split(0).map(item => `<span class="badge badge-secondary">${item}</span>`).join(' ')}
+                                ${movie.genres.map(item => `<span class="badge badge-${checkGenreType(item)}">${item}</span>`).join(' ')}
                               </td>
                               <td>${movie.averageRating}</td>
                             </tr>`);
@@ -59,23 +72,23 @@
                 }
             }
         );
-        $("tbody").on('click', 'td', function () {
-            const data = $(this).attr('data-attr');
-            const url = `/rest/movie/${data}`;
-            // allow spinner to load
-            $('#spinner').removeClass('hidden');
-            $("#specific-movie").css({ display: 'block' });
-            $.ajax(url, {
-                success: (movie, status, jqXHR) => {
-                    $("#movie-table").empty();
-                    history.pushState(null, 'specific movie', `http://localhost:3000/movie/${data}`);
-                    if (movie) {
-                        $(".h2").text(`${movie[0].title}`);
-                        $('#genres').append(
-                            `${movie[0].genres.join(0).split(0).map(genres => `<span class="badge badge-primary">${genres}</span>`).join(' ')}`
-                        );
-                        movie.forEach(item => {
-                            $("#specific-movie ul").append(`
+       
+    });
+    function findSpecicMovie(movieId) {
+        const url = `/rest/movie/${movieId}`;
+        // allow spinner to load
+        $('#spinner').removeClass('hidden');
+        $("#specific-movie").css({ display: 'block' });
+        $.ajax(url, {
+            success: (movie, status) => {
+          
+                if (movie) {
+                    $(".h2").text(`${movie[0].title}`);
+                    $('#genres').append(
+                        `${movie[0].genres.map(genres => `<span class="badge badge-${checkGenreType(genres)}">${genres}</span>`).join(' ')}`
+                    );
+                    movie.forEach(item => {
+                        $("#specific-movie ul").append(`
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div class="row">
                                 <div class="col-md-6">
@@ -91,14 +104,55 @@
                             </div>
                             </li>
                      `)
-                        })
-                    }
-                },
-                complete: () => {
-                    //stop spinner
-                    $('#spinner').addClass('hidden');
+                    })
                 }
-            })
+            },
+            complete: () => {
+                //stop spinner
+                $('#spinner').addClass('hidden');
+            }
         })
-    });
+    }
+    function checkGenreType(genre){
+        switch (genre) {
+      case "Action":
+        return "danger"
+      case "Adventure":
+        return "info"
+      case "Animation":
+        return "success"
+      case "Children":
+        return "success"
+      case "Comedy":
+        return "success"
+      case "Crime":
+        return "info"
+      case "Documentary":
+        return "secondary"
+      case "Drama":
+        return "primary"
+      case "Fantasy":
+        return "secondary"
+      case "Film-Noir":
+        return "warning"
+      case "Horror":
+        return "danger"
+      case "IMAX":
+        return "info"
+      case "Musical":
+        return "warning"
+      case "Mystery":
+        return "dark"
+      case "Romance":
+        return "danger"
+      case "Sci-Fi":
+        return "dark"
+      case "Thriller":
+        return "secondary"
+      case "War":
+        return "dark"
+      default:
+        return "primary"
+    }
+    }
 </script>

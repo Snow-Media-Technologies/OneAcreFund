@@ -1,3 +1,25 @@
+const ALL_GENRES = [
+  'Action',
+  'Adventure',
+  'Animation',
+  'Children',
+  'Comedy',
+  'Crime',
+  'Documentary',
+  'Drama',
+  'Fantasy',
+  'Film-Noir',
+  'Horror',
+  'IMAX',
+  'Musical',
+  'Mystery',
+  'Romance',
+  'Sci-Fi',
+  'Thriller',
+  'War',
+  'Western'
+];
+
 module.exports = {
   splitGenreByLine: function(result) {
     // in this function rating is optional
