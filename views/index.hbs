@@ -26,11 +26,16 @@
     //get genre from the server-side render
     let selectedGenre = '{{selectedGenre}}';
     let url = '/rest/movies/' + (selectedGenre ? `byGenre/${selectedGenre}` : 'all');
-
+    const path = window.location.pathname;
+    const splitPath = path.split('/').splice(1, 2);
+    if (splitPath[0] === 'movie') {
+        $("#specific-movie").css({ display: 'block' });
+        $(window).on('load', findSpecicMovie(splitPath[1]));
+    }
     //call REST service and render table
     $(document).ready(function () {
         $('#spinner').removeClass('hidden');
-        $("#specific-movie").css({ display: 'none' });
+        // $("#specific-movie").css({ display: 'none' });
         $.ajax(
             url,
             {
@@ -47,7 +52,7 @@
                                     </a>
                                     </td>
                                 <td>
-                                ${movie.genres.join(0).split(0).map(item => `<span class="badge badge-secondary">${item}</span>`).join(' ')}
+                                ${movie.genres.join(0).split(0).map(item => `<span class="badge badge-primary">${item}</span>`).join(' ')}
                               </td>
                               <td>${movie.averageRating}</td>
                             </tr>`);
@@ -61,21 +66,28 @@
         );
         $("tbody").on('click', 'td', function () {
             const data = $(this).attr('data-attr');
-            const url = `/rest/movie/${data}`;
-            // allow spinner to load
-            $('#spinner').removeClass('hidden');
+            const originURL = window.location.origin;
             $("#specific-movie").css({ display: 'block' });
-            $.ajax(url, {
-                success: (movie, status, jqXHR) => {
-                    $("#movie-table").empty();
-                    history.pushState(null, 'specific movie', `http://localhost:3000/movie/${data}`);
-                    if (movie) {
-                        $(".h2").text(`${movie[0].title}`);
-                        $('#genres').append(
-                            `${movie[0].genres.join(0).split(0).map(genres => `<span class="badge badge-primary">${genres}</span>`).join(' ')}`
-                        );
-                        movie.forEach(item => {
-                            $("#specific-movie ul").append(`
+            history.pushState(null, 'specific movie', `${originURL}/movie/${data}`);
+            findSpecicMovie(data);
+        })
+    });
+    function findSpecicMovie(movieId) {
+        const url = `/rest/movie/${movieId}`;
+        // allow spinner to load
+        $('#spinner').removeClass('hidden');
+        $("#specific-movie").css({ display: 'block' });
+        $.ajax(url, {
+            success: (movie, status) => {
+                console.log(movie);
+                $("#movie-table").empty();
+                if (movie) {
+                    $(".h2").text(`${movie[0].title}`);
+                    $('#genres').append(
+                        `${movie[0].genres.join(0).split(0).map(genres => `<span class="badge badge-primary">${genres}</span>`).join(' ')}`
+                    );
+                    movie.forEach(item => {
+                        $("#specific-movie ul").append(`
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div class="row">
                                 <div class="col-md-6">
@@ -91,14 +103,13 @@
                             </div>
                             </li>
                      `)
-                        })
-                    }
-                },
-                complete: () => {
-                    //stop spinner
-                    $('#spinner').addClass('hidden');
+                    })
                 }
-            })
+            },
+            complete: () => {
+                //stop spinner
+                $('#spinner').addClass('hidden');
+            }
         })
-    });
+    }
 </script>

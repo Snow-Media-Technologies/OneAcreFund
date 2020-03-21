@@ -13,15 +13,14 @@ router.get('/movies/all', function(req, res) {
 
 router.get('/movies/byGenre/:genre', function(req, res) {
   movieService.getMoviesByGenre(req.params.genre, (err, movies) => {
-    console.log(movies);
     res.json(movies);
   });
 });
 
 // find movie by id
-router.get('/movie/:id', function(req, res) {
-  movieService.getSpecificMovie(req.params.id, (error, movie)=>{
-    return res.status(200).json(movie);
+router.get('/movie/:movieId', function(req, res) {
+  movieService.getSpecificMovie(req.params.movieId, (error, movie)=>{
+    res.status(200).json(movie);
   });
 });
 
